@@ -144,15 +144,15 @@ minetest.register_chatcommand("pm", {
      end
 })
 
-function player1(player)
-     minetest.show_formspec(player:get_player_name(), "pms:pm",
+function player1(player, playername)
+     minetest.show_formspec(playername, "pms:pm",
           "size[6,9]" ..
           "field[.5,.5;4,1;player;Player:;]" ..
           "image_button[4.25,.25;.75,.75;add.png;add;;true;false;]" ..
-          "button[.25,1;2,1;player1;" .. name1[player:get_player_name()] .. "]" ..
+          "button[.25,1;2,1;player1;" .. name1[playername] .. "]" ..
           "textarea[2.5,1.25;3.5,2;chat_box1;;]" ..
           "button[4,3;2,1;send1;Send]" ..
-          "textlist[0,4;6,5;chat1;" .. refine_message(chat1[player:get_player_name()], player) .. "]")
+          "textlist[0,4;6,5;chat1;" .. refine_message(chat1[playername], player) .. "]")
 end
 
 function player11(player)
@@ -258,12 +258,12 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     if player_yes == 1 then
                          if a[player:get_player_name()] == 1 then
                               if name1[player:get_player_name()] ~= nil then
-                                   player1(player)
+                                   player1(player, player:get_player_name())
                                    player_yes = 0
                               end
                          elseif a[player:get_player_name()] == 2 then
                               if name1[player:get_player_name()] == nil then
-                                   player1(player)
+                                   player1(player, player:get_player_name())
                                    player_yes = 0
                               else
                                    if name2[player:get_player_name()] ~= nil then
@@ -273,7 +273,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                               end
                          elseif a[player:get_player_name()] == 3 then
                               if name1[player:get_player_name()] == nil then
-                                   player1(player)
+                                   player1(player, player:get_player_name())
                                    player_yes = 0
                               elseif name2[player:get_player_name()] == nil then
                                    player2(player)
@@ -291,7 +291,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     else
                          if a[player:get_player_name()] == 1 then
                               table.insert(chat1[player:get_player_name()], "-!- No such player exists.")
-                              player1(player)
+                              player1(player, player:get_player_name())
                          elseif a[player:get_player_name()] == 2 then
                               table.insert(chat2[player:get_player_name()], "-!- No such player exists.")
                               player2(player)
@@ -310,11 +310,11 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                else
                     if a[player:get_player_name()] == 1 then
                          table.insert(chat1[player:get_player_name()], "-!- No player name entered.")
-                         player1(player)
+                         player1(player, player:get_player_name())
                          a = 0
                     elseif a[player:get_player_name()] == 2 then
                          table.insert(chat1[player:get_player_name()], "-!- No player name entered.")
-                         player1(player)
+                         player1(player, player:get_player_name())
                          a = 1
                     elseif a[player:get_player_name()] == 3 then
                          table.insert(chat2[player:get_player_name()], "-!- No player name entered.")
@@ -333,7 +333,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
           if fields.player1 then
                player_chat = 1
                if a[player:get_player_name()] == 1 then
-                    player1(player)
+                    player1(player, player:get_player_name())
                elseif a[player:get_player_name()] == 2 then
                     player11(player)
                elseif a[player:get_player_name()] == 3 then
@@ -360,14 +360,21 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                if fields.chat_box1 ~= nil then
                     table.insert(chat1[player:get_player_name()], fields.chat_box1)
                     if name1[name1[player:get_player_name()]] == player:get_player_name() then
-                         table.insert(chat1[name1[player:get_player_name()]], fields.chat_box1)
+                         if a[name1] == 1 then
+                              player1(player, name1)
+                         elseif a[name1] == 2 then
+                              player11(name1)
+                         elseif a[name2] == 3 then
+                              player111(name1)
+                         end
+                         table.insert(chat1[name1[player:get_player_name()]], "<" .. player:get_player_name() .. "> " .. fields.chat_box1)
                     elseif name2[name1[player:get_player_name()]] == player:get_player_name() then
                          table.insert(chat2[name2[player:get_player_name()]], fields.chat_box1)
                     elseif name3[name1[player:get_player_name()]] == player:get_player_name() then
                          table.insert(chat3[name3[player:get_player_name()]], fields.chat_box1)
                     end
                     if a[player:get_player_name()] == 1 then
-                         player1(player)
+                         player1(player, player:get_player_name())
                     elseif a[player:get_player_name()] == 2 then
                          player11(player)
                     elseif a[player:get_player_name()] == 3 then
