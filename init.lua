@@ -1,3 +1,4 @@
+a = {}
 chat_error = {"Welcome!"}
 chat1 = {}
 chat2 = {}
