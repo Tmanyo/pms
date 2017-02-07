@@ -10,6 +10,7 @@ player_chat = 0
 message_sent = {}
 sender = {}
 player_message = {}
+sender = {}
 
 -- Set all tables to empty except chat_error.
 minetest.register_on_joinplayer(function(player)
@@ -260,6 +261,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                                    name1[player:get_player_name()] = fields.player
                                    minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
                                    message_sent = 1
+                                   sender[fields.player] = player:get_player_name()
                               else
                                    a[player:get_player_name()] = 0
                               end
@@ -268,6 +270,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                                    name2[player:get_player_name()] = fields.player
                                    minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
                                    message_sent = 1
+                                   sender[fields.player] = player:get_player_name()
                               else
                                    a[player:get_player_name()] = 1
                               end
@@ -276,6 +279,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                                    name3[player:get_player_name()] = fields.player
                                    minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
                                    message_sent = 1
+                                   sender[fields.player] = player:get_player_name()
                               else
                                    a[player:get_player_name()] = 2
                               end
@@ -447,23 +451,16 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
      end
 end)
 
---[[minetest.register_on_chat_message(function(name, message)
+minetest.register_on_chat_message(function(name, message)
      local player = minetest.get_player_by_name(name)
      if message_sent == 1 then
           if message == "Yes" or "yes" or "Y" or "y" then
-               if a == 0 then
-                    playernames.name1[player:get_player_name()] = sender
-                    player1(player)
-                    a = 1
-               --[[elseif a == 1 then
-                    player2(player)
-                    a = 2
-               elseif a == 2 then
-                    player2(player)
-                    a = 3
-               end
+               message_sent = 0
+               a[name] = 1
+               name1[name] = sender[name]
+               player1(player)
           elseif message == "No" or "no" or "N" or "n" then
                minetest.chat_send_player(name, "Okay.")
           end
      end
-end)]]
+end)
