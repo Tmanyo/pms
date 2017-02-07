@@ -9,7 +9,9 @@ name3 = {}
 player_chat = 0
 message_sent = {}
 sender = {}
+player_message = {}
 
+-- Set all tables to empty except chat_error.
 minetest.register_on_joinplayer(function(player)
      a[player:get_player_name()] = 0
      chat_error[player:get_player_name()] = {"Welcome"}
@@ -21,6 +23,7 @@ minetest.register_on_joinplayer(function(player)
      name3[player:get_player_name()] = {}
 end)
 
+-- Add playername and format player text sent.
 function refine_message(tbl, player)
      player_message = 0
      local very_last = {}
@@ -127,6 +130,7 @@ function refine_message(tbl, player)
      return finished_message
 end
 
+-- Very first form activated by using /pm.
 function pm_form(name)
      local player = minetest.get_player_by_name(name)
      minetest.show_formspec(name, "pms:pm",
@@ -137,6 +141,7 @@ function pm_form(name)
           "textlist[0,4;6,5;chat;" .. refine_message(chat_error[player:get_player_name()], player) .. "]")
 end
 
+-- PM chatcommand
 minetest.register_chatcommand("pm", {
      description = "Send private messages to players.",
      func = function(name, param)
@@ -144,15 +149,15 @@ minetest.register_chatcommand("pm", {
      end
 })
 
-function player1(player, playername)
-     minetest.show_formspec(playername, "pms:pm",
+function player1(player)
+     minetest.show_formspec(player:get_player_name(), "pms:pm",
           "size[6,9]" ..
           "field[.5,.5;4,1;player;Player:;]" ..
           "image_button[4.25,.25;.75,.75;add.png;add;;true;false;]" ..
-          "button[.25,1;2,1;player1;" .. name1[playername] .. "]" ..
+          "button[.25,1;2,1;player1;" .. name1[player:get_player_name()] .. "]" ..
           "textarea[2.5,1.25;3.5,2;chat_box1;;]" ..
           "button[4,3;2,1;send1;Send]" ..
-          "textlist[0,4;6,5;chat1;" .. refine_message(chat1[playername], player) .. "]")
+          "textlist[0,4;6,5;chat1;" .. refine_message(chat1[player:get_player_name()], player) .. "]")
 end
 
 function player11(player)
@@ -225,96 +230,117 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
           if fields.add then
                a[player:get_player_name()] = a[player:get_player_name()] + 1
                if fields.player ~= "" then
-                    player_list = minetest.get_dir_list(minetest.get_worldpath() .. "/players", false)
-                    local s = minetest.serialize(player_list)
-                    if s:match(fields.player) then
-                         player_yes = 1
-                    end
-                    if a[player:get_player_name()] == 1 then
-                         if player_yes == 1 then
-                              name1[player:get_player_name()] = fields.player
-                              minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
-                              message_sent = 1
-                         else
-                              a[player:get_player_name()] = 0
-                         end
-                    elseif a[player:get_player_name()] == 2 then
-                         if player_yes == 1 then
-                              name2[player:get_player_name()] = fields.player
-                              minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
-                              message_sent = 1
-                         else
-                              a[player:get_player_name()] = 1
-                         end
-                    elseif a[player:get_player_name()] == 3 then
-                         if player_yes == 1 then
-                              name3[player:get_player_name()] = fields.player
-                              minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
-                              message_sent = 1
-                         else
-                              a[player:get_player_name()] = 2
-                         end
-                    end
-                    if player_yes == 1 then
+                    if fields.player == player:get_player_name() then
+                         a[player:get_player_name()] = a[player:get_player_name()] - 1
                          if a[player:get_player_name()] == 1 then
-                              if name1[player:get_player_name()] ~= nil then
-                                   player1(player, player:get_player_name())
-                                   player_yes = 0
-                              end
+                              table.insert(chat1[player:get_player_name()], "-!- Sorry.  We won't allow you to chat with yourself.")
+                              player1(player)
                          elseif a[player:get_player_name()] == 2 then
-                              if name1[player:get_player_name()] == nil then
-                                   player1(player, player:get_player_name())
-                                   player_yes = 0
-                              else
-                                   if name2[player:get_player_name()] ~= nil then
-                                        player2(player)
-                                        player_yes = 0
-                                   end
-                              end
-                         elseif a[player:get_player_name()] == 3 then
-                              if name1[player:get_player_name()] == nil then
-                                   player1(player, player:get_player_name())
-                                   player_yes = 0
-                              elseif name2[player:get_player_name()] == nil then
-                                   player2(player)
-                                   player_yes = 0
-                              else
-                                   if name3[player:get_player_name()] ~= nil then
-                                        player3(player)
-                                        player_yes = 0
-                                   end
-                              end
-                         elseif a[player:get_player_name()] > 3 then
-                              table.insert(chat3[player:get_player_name()], "-!- You are chatting with the maximum amount of players.")
-                              player3(player)
-                         end
-                    else
-                         if a[player:get_player_name()] == 1 then
-                              table.insert(chat1[player:get_player_name()], "-!- No such player exists.")
-                              player1(player, player:get_player_name())
-                         elseif a[player:get_player_name()] == 2 then
-                              table.insert(chat2[player:get_player_name()], "-!- No such player exists.")
+                              table.insert(chat2[player:get_player_name()], "-!- Sorry.  We won't allow you to chat with yourself.")
                               player2(player)
                          elseif a[player:get_player_name()] == 3 then
-                              table.insert(chat3[player:get_player_name()], "-!- No such player exists.")
+                              table.insert(chat3[player:get_player_name()], "-!- Sorry.  We won't allow you to chat with yourself.")
                               player3(player)
                          elseif a[player:get_player_name()] > 3 then
-                              table.insert(chat3[player:get_player_name()], "-!- No such player exists.")
+                              table.insert(chat3[player:get_player_name()], "-!- Sorry.  We won't allow you to chat with yourself.")
                               player3(player)
                          else
-                              table.insert(chat_error[player:get_player_name()], "-!- No such player exists.")
+                              table.insert(chat_error[player:get_player_name()], "-!- Sorry.  We won't allow you to chat with yourself.")
                               local name = player:get_player_name()
                               pm_form(name)
+                         end
+                    else
+                         player_list = minetest.get_dir_list(minetest.get_worldpath() .. "/players", false)
+                         local s = minetest.serialize(player_list)
+                         if s:match(fields.player) then
+                              player_yes = 1
+                         end
+                         if a[player:get_player_name()] == 1 then
+                              if player_yes == 1 then
+                                   name1[player:get_player_name()] = fields.player
+                                   minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
+                                   message_sent = 1
+                              else
+                                   a[player:get_player_name()] = 0
+                              end
+                         elseif a[player:get_player_name()] == 2 then
+                              if player_yes == 1 then
+                                   name2[player:get_player_name()] = fields.player
+                                   minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
+                                   message_sent = 1
+                              else
+                                   a[player:get_player_name()] = 1
+                              end
+                         elseif a[player:get_player_name()] == 3 then
+                              if player_yes == 1 then
+                                   name3[player:get_player_name()] = fields.player
+                                   minetest.chat_send_player(fields.player, player:get_player_name() .. " has started a private conversation.  Would you like to view?")
+                                   message_sent = 1
+                              else
+                                   a[player:get_player_name()] = 2
+                              end
+                         end
+                         if player_yes == 1 then
+                              if a[player:get_player_name()] == 1 then
+                                   if name1[player:get_player_name()] ~= nil then
+                                        player1(player)
+                                        player_yes = 0
+                                   end
+                              elseif a[player:get_player_name()] == 2 then
+                                   if name1[player:get_player_name()] == nil then
+                                        player1(player)
+                                        player_yes = 0
+                                   else
+                                        if name2[player:get_player_name()] ~= nil then
+                                             player2(player)
+                                             player_yes = 0
+                                        end
+                                   end
+                              elseif a[player:get_player_name()] == 3 then
+                                   if name1[player:get_player_name()] == nil then
+                                        player1(player)
+                                        player_yes = 0
+                                   elseif name2[player:get_player_name()] == nil then
+                                        player2(player)
+                                        player_yes = 0
+                                   else
+                                        if name3[player:get_player_name()] ~= nil then
+                                             player3(player)
+                                             player_yes = 0
+                                        end
+                                   end
+                              elseif a[player:get_player_name()] > 3 then
+                                   table.insert(chat3[player:get_player_name()], "-!- You are chatting with the maximum amount of players.")
+                                   player3(player)
+                              end
+                         else
+                              if a[player:get_player_name()] == 1 then
+                                   table.insert(chat1[player:get_player_name()], "-!- No such player exists.")
+                                   player1(player)
+                              elseif a[player:get_player_name()] == 2 then
+                                   table.insert(chat2[player:get_player_name()], "-!- No such player exists.")
+                                   player2(player)
+                              elseif a[player:get_player_name()] == 3 then
+                                   table.insert(chat3[player:get_player_name()], "-!- No such player exists.")
+                                   player3(player)
+                              elseif a[player:get_player_name()] > 3 then
+                                   table.insert(chat3[player:get_player_name()], "-!- No such player exists.")
+                                   player3(player)
+                              else
+                                   table.insert(chat_error[player:get_player_name()], "-!- No such player exists.")
+                                   local name = player:get_player_name()
+                                   pm_form(name)
+                              end
                          end
                     end
                else
                     if a[player:get_player_name()] == 1 then
                          table.insert(chat1[player:get_player_name()], "-!- No player name entered.")
-                         player1(player, player:get_player_name())
+                         player1(player)
                          a = 0
                     elseif a[player:get_player_name()] == 2 then
                          table.insert(chat1[player:get_player_name()], "-!- No player name entered.")
-                         player1(player, player:get_player_name())
+                         player1(player)
                          a = 1
                     elseif a[player:get_player_name()] == 3 then
                          table.insert(chat2[player:get_player_name()], "-!- No player name entered.")
@@ -333,7 +359,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
           if fields.player1 then
                player_chat = 1
                if a[player:get_player_name()] == 1 then
-                    player1(player, player:get_player_name())
+                    player1(player)
                elseif a[player:get_player_name()] == 2 then
                     player11(player)
                elseif a[player:get_player_name()] == 3 then
@@ -361,7 +387,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                     table.insert(chat1[player:get_player_name()], fields.chat_box1)
                     if name1[name1[player:get_player_name()]] == player:get_player_name() then
                          if a[name1] == 1 then
-                              player1(player, name1)
+                              player1(name1)
                          elseif a[name1] == 2 then
                               player11(name1)
                          elseif a[name2] == 3 then
@@ -374,7 +400,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
                          table.insert(chat3[name3[player:get_player_name()]], fields.chat_box1)
                     end
                     if a[player:get_player_name()] == 1 then
-                         player1(player, player:get_player_name())
+                         player1(player)
                     elseif a[player:get_player_name()] == 2 then
                          player11(player)
                     elseif a[player:get_player_name()] == 3 then
